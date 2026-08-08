@@ -61,7 +61,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration=new CorsConfiguration();
         // Allow your React app's local address
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173","https://agromind-app.vercel.app"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173","https://agromind-java.vercel.app"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST","DELETE","PATCH","PUT","OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization","Content-Type","x-auth-token"));
         configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
