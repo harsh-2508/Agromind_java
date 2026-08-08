@@ -11,6 +11,7 @@ spring:
 
   # Hibernate/JPA Configuration
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect 
     hibernate:
       ddl-auto: update
     # Toggle SQL logs off in production via env var to save server memory, but keep on locally
