@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: agromind-auction
+
+  # Database Configuration
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/agromind_auction}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:root123}
+    driver-class-name: org.postgresql.Driver
+
+  # Hibernate/JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # Toggle SQL logs off in production via env var to save server memory, but keep on locally
+    show-sql: ${SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Disable default Spring Security password generation for now
+  security:
+    user:
+      name: admin
+      password: admin
+
+  # ... (your existing database and security settings)
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:placeholder_key}
+
+
