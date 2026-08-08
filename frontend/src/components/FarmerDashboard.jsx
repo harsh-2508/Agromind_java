@@ -54,7 +54,7 @@ const FarmerDashboard = () => {
     const fetchAuctionsAndConnectWS = async () => {
       try {
         const token = localStorage.getItem('agro_token');
-        const response = await fetch('http://localhost:8080/api/auctions/my-auctions', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auctions/my-auctions`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -65,7 +65,7 @@ const FarmerDashboard = () => {
         setFetchError(null);
 
         // websocket connection
-        const socket = new SockJS('http://localhost:8080/ws-auction');
+        const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-auction`);
         stompClient = new Client({
           webSocketFactory: () => socket,
           connectHeaders: { Authorization: `Bearer ${token}` },
@@ -99,7 +99,7 @@ const FarmerDashboard = () => {
   // --- AUCTION CONTROLS ---
   const handleStartAuction = async (auctionId) => {
     const token = localStorage.getItem('agro_token');
-    const response = await fetch(`http://localhost:8080/api/auctions/${auctionId}/start`, {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auctions/${auctionId}/start`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -111,7 +111,7 @@ const FarmerDashboard = () => {
 
   const handleCloseAuction = async (auctionId) => {
     const token = localStorage.getItem('agro_token');
-    const response = await fetch(`http://localhost:8080/api/auctions/${auctionId}/close`, {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auctions/${auctionId}/close`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -135,7 +135,7 @@ const FarmerDashboard = () => {
         }
       };
 
-      const response = await fetch('http://localhost:8080/api/auctions', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auctions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ const FarmerDashboard = () => {
       });
 
       if (response.ok) {
-        const refreshResponse = await fetch('http://localhost:8080/api/auctions/my-auctions', {
+        const refreshResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auctions/my-auctions`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (refreshResponse.ok) setAuctions(await refreshResponse.json());
@@ -178,7 +178,7 @@ const FarmerDashboard = () => {
     formData.append('image', selectedImage); // Matches @RequestParam("image") in Spring Boot
 
     try {
-      const response = await fetch('http://localhost:8080/api/ai/analyze-disease', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ai/analyze-disease`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData // Note: When using FormData, do NOT set 'Content-Type'. The browser sets it automatically with the boundary!
@@ -412,7 +412,174 @@ const FarmerDashboard = () => {
         </div>
       )}
 
-      {/* ... (Keep your existing New Listing and Soil AI modals here, I omitted them above to save space but they remain exactly the same as your current file) ... */}
+      {/* --- NEW LISTING MODAL --- */}
+      {isNewListingModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+            
+            <button onClick={() => setIsNewListingModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+
+            <h2 className="text-2xl font-bold text-white mb-2 flex items-center">
+              <Package className="w-6 h-6 mr-2 text-green-400" />
+              Create New Listing
+            </h2>
+            <p className="text-sm text-slate-400 mb-6">Add a new crop to the auction marketplace.</p>
+
+            <form onSubmit={handleCreateListing} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Crop Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newListingData.name}
+                  onChange={(e) => setNewListingData({ ...newListingData, name: e.target.value })}
+                  placeholder="e.g. Organic Wheat"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Quantity (kg)</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={newListingData.quantityKg}
+                  onChange={(e) => setNewListingData({ ...newListingData, quantityKg: e.target.value })}
+                  placeholder="e.g. 500"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Base Price (₹)</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={newListingData.basePrice}
+                  onChange={(e) => setNewListingData({ ...newListingData, basePrice: e.target.value })}
+                  placeholder="e.g. 2500"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmittingListing}
+                className="w-full bg-green-600 hover:bg-green-500 disabled:bg-green-800 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors shadow-lg shadow-green-900/20 flex justify-center items-center text-lg mt-2"
+              >
+                {isSubmittingListing ? (
+                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Creating...</>
+                ) : (
+                  <><Plus className="w-5 h-5 mr-2" /> Create Listing</>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- SOIL AI MODAL --- */}
+      {isAiModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-800 border border-blue-900/50 rounded-2xl p-6 w-full max-w-2xl shadow-2xl relative max-h-[90vh] flex flex-col">
+            
+            <button onClick={() => { setIsAiModalOpen(false); setAiResult(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+
+            <h2 className="text-2xl font-bold text-white mb-2 flex items-center">
+              <Sparkles className="w-6 h-6 mr-2 text-blue-400" />
+              Soil Analysis AI
+            </h2>
+            <p className="text-sm text-slate-400 mb-6">Enter your soil data and get AI-powered crop recommendations from Gemini.</p>
+
+            <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
+              {!aiResult ? (
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setIsAiLoading(true);
+                  setAiResult(null);
+                  const token = localStorage.getItem('agro_token');
+                  try {
+                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ai/recommend`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
+                      body: JSON.stringify(soilData)
+                    });
+                    if (response.ok) {
+                      const data = await response.json();
+                      setAiResult(data.recommendation);
+                    } else {
+                      setAiResult("Failed to get recommendation. Please try again.");
+                    }
+                  } catch (error) {
+                    setAiResult("Error connecting to AI service.");
+                  } finally {
+                    setIsAiLoading(false);
+                  }
+                }} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">Nitrogen (N)</label>
+                      <input type="number" required value={soilData.nitrogen} onChange={(e) => setSoilData({ ...soilData, nitrogen: e.target.value })} placeholder="e.g. 90" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">Phosphorus (P)</label>
+                      <input type="number" required value={soilData.phosphorus} onChange={(e) => setSoilData({ ...soilData, phosphorus: e.target.value })} placeholder="e.g. 42" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">Potassium (K)</label>
+                      <input type="number" required value={soilData.potassium} onChange={(e) => setSoilData({ ...soilData, potassium: e.target.value })} placeholder="e.g. 43" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-1">pH Level</label>
+                      <input type="number" step="0.1" required value={soilData.phLevel} onChange={(e) => setSoilData({ ...soilData, phLevel: e.target.value })} placeholder="e.g. 6.5" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Region</label>
+                    <select value={soilData.region} onChange={(e) => setSoilData({ ...soilData, region: e.target.value })} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                      <option>Madhya Pradesh</option>
+                      <option>Maharashtra</option>
+                      <option>Punjab</option>
+                      <option>Uttar Pradesh</option>
+                      <option>Rajasthan</option>
+                      <option>Karnataka</option>
+                      <option>Tamil Nadu</option>
+                      <option>Gujarat</option>
+                      <option>West Bengal</option>
+                      <option>Bihar</option>
+                    </select>
+                  </div>
+                  <button type="submit" disabled={isAiLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-blue-900/30 flex justify-center items-center text-lg mt-2">
+                    {isAiLoading ? (
+                      <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Gemini is thinking...</>
+                    ) : (
+                      <><Microscope className="w-5 h-5 mr-2" /> Get AI Recommendation</>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                <div className="bg-slate-900/80 border border-blue-900/50 rounded-xl p-5 shadow-inner">
+                  <h3 className="text-blue-400 font-bold mb-3 flex items-center">
+                    <CheckCircle2 className="w-5 h-5 mr-2" /> AI Crop Recommendation
+                  </h3>
+                  <div className="text-slate-300 text-sm leading-relaxed prose prose-invert prose-blue">
+                    <ReactMarkdown>{aiResult}</ReactMarkdown>
+                  </div>
+                  <button onClick={() => setAiResult(null)} className="mt-6 text-sm text-blue-500 hover:text-blue-400 font-medium">
+                    + Run another analysis
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

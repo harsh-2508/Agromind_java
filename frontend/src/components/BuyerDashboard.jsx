@@ -27,7 +27,7 @@ const BuyerDashboard = () => {
         const token = localStorage.getItem('agro_token');
         
         // Fetch ALL auctions (Global Marketplace)
-        const response = await fetch('http://localhost:8080/api/auctions/all', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auctions/all`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
@@ -41,7 +41,7 @@ const BuyerDashboard = () => {
         setFetchError(null);
 
         // Connect to WebSockets to listen for live outbids
-        const socket = new SockJS('http://localhost:8080/ws-auction');
+        const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws-auction`);
         stompClient = new Client({
           webSocketFactory: () => socket,
           connectHeaders: { Authorization: `Bearer ${token}` },
@@ -100,7 +100,7 @@ const BuyerDashboard = () => {
     const buyerId = storedUser.id || 2; 
 
     try {
-      const response = await fetch('http://localhost:8080/api/auctions/bid', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auctions/bid`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
