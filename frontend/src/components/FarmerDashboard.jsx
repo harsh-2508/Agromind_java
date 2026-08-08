@@ -502,13 +502,19 @@ const FarmerDashboard = () => {
                   setAiResult(null);
                   const token = localStorage.getItem('agro_token');
                   try {
-                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ai/recommend`, {
+                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ai/analyze-soil`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                       },
-                      body: JSON.stringify(soilData)
+                      body: JSON.stringify({
+                        nitrogen: parseFloat(soilData.nitrogen),
+                        phosphorus: parseFloat(soilData.phosphorus),
+                        potassium: parseFloat(soilData.potassium),
+                        phLevel: parseFloat(soilData.phLevel),
+                        region: soilData.region
+                      })
                     });
                     if (response.ok) {
                       const data = await response.json();
